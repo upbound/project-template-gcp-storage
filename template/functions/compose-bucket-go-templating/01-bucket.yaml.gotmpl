@@ -1,0 +1,24 @@
+# code: language=yaml
+# yaml-language-server: $schema=../../.up/json/models/index.schema.json
+
+---
+apiVersion: storage.gcp.upbound.io/v1beta1
+kind: Bucket
+metadata:
+  annotations:
+    {{ setResourceNameAnnotation "bucket" }}
+spec:
+  forProvider:
+    location: "{{ $params.location }}"
+    versioning:
+      - enabled: {{ $params.versioning }}
+
+# The desired ACL resource needs to refer to the bucket by its external name,
+# which is stored in its external name annotation. Fetch the external name into
+# a variable so subsequent templates can use it.
+#
+#{{ $bucket := getComposedResource . "bucket" }}
+#{{ $bucket_external_name := "" }}
+#{{ if $bucket }}
+#{{ $bucket_external_name = get $bucket.metadata.annotations "crossplane.io/external-name" }}
+#{{ end }}
