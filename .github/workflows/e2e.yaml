@@ -14,8 +14,6 @@ permissions:
   id-token: write   # Required for OIDC authentication
   contents: read    # Required for checkout
 
-env:
-  UP_ORG: ${{ secrets.UP_ORG }}
 
 jobs:
   e2e:
@@ -25,6 +23,10 @@ jobs:
       matrix:
         language: [go, go-templating, kcl, python]
         test-language: [kcl, python]
+    env:
+      UP_ORG: ${{ secrets.UP_ORG }}
+      UP_API_TOKEN: ${{ secrets.UP_API_TOKEN }}
+
     steps:
       - name: Checkout
         id: checkout
