@@ -26,6 +26,7 @@ jobs:
     env:
       UP_ORG: ${{ secrets.UP_ORG }}
       UP_API_TOKEN: ${{ secrets.UP_API_TOKEN }}
+      UP_TOKEN_ID: ${{ secrets.UP_TOKEN_ID }}
 
     steps:
       - name: Checkout
@@ -55,6 +56,14 @@ jobs:
           api-token: ${{ secrets.UP_API_TOKEN }}
           organization: ${{ secrets.UP_ORG }}
           channel: alpha
+
+      - name: Log Docker into Upbound
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3
+        if: env.UP_API_TOKEN != '' && env.UP_TOKEN_ID != ''
+        with:
+          registry: xpkg.upbound.io
+          username: ${{ secrets.UP_TOKEN_ID }}
+          password: ${{ secrets.UP_API_TOKEN }}
 
       - name: Initialize project
         run: up project init -t ./template generated-project --language ${{ matrix.language }} --test-language ${{ matrix.test-language }}
