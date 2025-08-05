@@ -14,8 +14,6 @@ permissions:
   id-token: write   # Required for OIDC authentication
   contents: read    # Required for checkout
 
-env:
-  UP_ORG: ${{ secrets.UP_ORG }}
 
 jobs:
   e2e:
@@ -25,6 +23,11 @@ jobs:
       matrix:
         language: [go, go-templating, kcl, python]
         test-language: [kcl, python]
+    env:
+      UP_ORG: ${{ secrets.UP_ORG }}
+      UP_API_TOKEN: ${{ secrets.UP_API_TOKEN }}
+      UP_TOKEN_ID: ${{ secrets.UP_TOKEN_ID }}
+
     steps:
       - name: Checkout
         id: checkout
@@ -38,6 +41,9 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+          export_environment_variables: true
 
       - name: Setup Go
         id: setup-go
@@ -54,6 +60,14 @@ jobs:
           organization: ${{ secrets.UP_ORG }}
           channel: alpha
 
+      - name: Log Docker into Upbound
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3
+        if: env.UP_API_TOKEN != '' && env.UP_TOKEN_ID != ''
+        with:
+          registry: xpkg.upbound.io
+          username: ${{ secrets.UP_TOKEN_ID }}
+          password: ${{ secrets.UP_API_TOKEN }}
+
       - name: Initialize project
         run: up project init -t ./template generated-project --language ${{ matrix.language }} --test-language ${{ matrix.test-language }}
 
@@ -62,9 +76,11 @@ jobs:
 
       - name: Run e2e tests
         env:
-          UP_GCP_CREDS: ${{ steps.gcp-creds.outputs.auth_token }}
           UP_GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-        run: cd generated-project && up test run tests/* --e2e --local --skip-control-plane-cleanup
+        run: |
+          cd generated-project
+          export UP_GCP_CREDS="$(cat ${{ env.GOOGLE_APPLICATION_CREDENTIALS }})"
+          up test run tests/* --e2e --local --skip-control-plane-cleanup
 
       - name: Install kind CLI
         if: failure()
