@@ -42,6 +42,8 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+          export_environment_variables: true
 
       - name: Setup Go
         id: setup-go
@@ -74,7 +76,7 @@ jobs:
 
       - name: Run e2e tests
         env:
-          UP_GCP_CREDS: ${{ steps.gcp-creds.outputs.auth_token }}
+          UP_GCP_CREDS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
           UP_GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: cd generated-project && up test run tests/* --e2e --local --skip-control-plane-cleanup
 
