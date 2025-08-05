@@ -76,9 +76,11 @@ jobs:
 
       - name: Run e2e tests
         env:
-          UP_GCP_CREDS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
           UP_GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-        run: cd generated-project && up test run tests/* --e2e --local --skip-control-plane-cleanup
+        run: |
+          cd generated-project
+          export UP_GCP_CREDS="$(cat ${{ env.GOOGLE_APPLICATION_CREDENTIALS }})"
+          up test run tests/* --e2e --local --skip-control-plane-cleanup
 
       - name: Install kind CLI
         if: failure()
