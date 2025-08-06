@@ -8,7 +8,6 @@ on:
     types:
       - synchronize
       - labeled
-  workflow_dispatch:
 
 permissions:
   id-token: write   # Required for OIDC authentication
@@ -17,7 +16,7 @@ permissions:
 
 jobs:
   e2e:
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run-e2e-tests')
+    if: contains(github.event.pull_request.labels.*.name, 'run-e2e-tests')
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -33,7 +32,8 @@ jobs:
         id: checkout
         uses: actions/checkout@v4
         with:
-          path: ./template
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
 
       - name: Configure GCP credentials
         id: gcp-creds
@@ -69,7 +69,7 @@ jobs:
           password: ${{ secrets.UP_API_TOKEN }}
 
       - name: Initialize project
-        run: up project init -t ./template generated-project --language ${{ matrix.language }} --test-language ${{ matrix.test-language }}
+        run: up project init -t . generated-project --language ${{ matrix.language }} --test-language ${{ matrix.test-language }}
 
       - name: Build project
         run: cd generated-project && up project build
