@@ -21,7 +21,7 @@ jobs:
     strategy:
       matrix:
         language: [go, go-templating, kcl, python]
-        test-language: [kcl, python]
+        test-language: [go-templating, kcl, python]
     env:
       UP_ORG: ${{ secrets.UP_ORG }}
       UP_API_TOKEN: ${{ secrets.UP_API_TOKEN }}
@@ -72,6 +72,11 @@ jobs:
 
       - name: Build project
         run: cd generated-project && up project build
+
+      - name: Run composition tests
+        run: |
+          cd generated-project
+          up test run tests/* --local --skip-control-plane-cleanup
 
       - name: Run e2e tests
         env:
