@@ -7,7 +7,7 @@ from .model.com.example.platform.xstoragebucket import v1alpha1
 
 
 def compose(req: fnv1.RunFunctionRequest, rsp: fnv1.RunFunctionResponse):
-    observed_xr = v1alpha1.XStorageBucket(**req.observed.composite.resource)
+    observed_xr = v1alpha1.XStorageBucket(**resource.struct_to_dict(req.observed.composite.resource))
     params = observed_xr.spec.parameters
 
     desired_bucket = bucketv1beta1.Bucket(
@@ -30,7 +30,7 @@ def compose(req: fnv1.RunFunctionRequest, rsp: fnv1.RunFunctionResponse):
     if "bucket" not in req.observed.resources:
         return
 
-    observed_bucket = bucketv1beta1.Bucket(**req.observed.resources["bucket"].resource)
+    observed_bucket = bucketv1beta1.Bucket(**resource.struct_to_dict(req.observed.resources["bucket"].resource))
 
     # The desired ACL refers to the bucket by its external name, which is stored
     # in its external name annotation. Return early if the Bucket's
