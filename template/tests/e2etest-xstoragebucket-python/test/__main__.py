@@ -1,12 +1,20 @@
 import base64
 import os
 
-from .model.io.upbound.dev.meta.e2etest import v1alpha1 as e2etest
-from .model.io.k8s.apimachinery.pkg.apis.meta import v1 as k8s
-from .model.com.example.platform.xstoragebucket import v1alpha1 as xstoragebucket
-from .model.io.upbound.gcp.providerconfig import v1beta1 as providerconfig
-from .model.io.k8s.api.core import v1 as corev1
-from .model.io.k8s.apimachinery.pkg.apis.core.meta import v1 as coremetav1
+import yaml
+from pydantic import BaseModel
+from models.io.upbound.dev.meta.e2etest import v1alpha1 as e2etest
+from models.io.k8s.apimachinery.pkg.apis.meta import v1 as k8s
+from models.com.example.platform.xstoragebucket import v1alpha1 as xstoragebucket
+from models.io.upbound.gcp.providerconfig import v1beta1 as providerconfig
+
+
+class Secret(BaseModel):
+    apiVersion: str = "v1"
+    kind: str = "Secret"
+    metadata: k8s.ObjectMeta
+    type: str = "Opaque"
+    data: dict[str, str] = {}
 
 bucket_manifest = xstoragebucket.XStorageBucket(
     metadata=k8s.ObjectMeta(
@@ -21,13 +29,13 @@ bucket_manifest = xstoragebucket.XStorageBucket(
     ),
 )
 
-provider_creds = corev1.Secret(
-    metadata=coremetav1.ObjectMeta(
+provider_creds = Secret(
+    metadata=k8s.ObjectMeta(
         name="gcp-credentials",
         namespace="crossplane-system",
     ),
     data={
-        "credentials": base64.b64encode(os.environ.get("UP_GCP_CREDS").encode()).decode('ascii')
+        "credentials": base64.b64encode(os.environ.get("UP_GCP_CREDS", "").encode()).decode('ascii')
     }
 )
 
@@ -36,7 +44,7 @@ provider_config = providerconfig.ProviderConfig(
         name="default",
     ),
     spec=providerconfig.Spec(
-        projectID=os.environ.get("UP_GCP_PROJECT_ID"),
+        projectID=os.environ.get("UP_GCP_PROJECT_ID", ""),
         credentials=providerconfig.Credentials(
             source="Secret",
             secretRef=providerconfig.SecretRef(
@@ -61,9 +69,16 @@ test = e2etest.E2ETest(
         defaultConditions=[
             "Ready",
         ],
-        manifests=[bucket_manifest.model_dump()],
-        extraResources=[provider_creds.model_dump(), provider_config.model_dump()],
+        manifests=[bucket_manifest.model_dump(by_alias=True, exclude_none=True)],
+        extraResources=[
+            provider_creds.model_dump(by_alias=True, exclude_none=True),
+            provider_config.model_dump(by_alias=True, exclude_none=True),
+        ],
         skipDelete=False,
         timeoutSeconds=300,
     )
 )
+
+# The test runner expects an "items" array, one entry per test.
+output = {"items": [test.model_dump(by_alias=True, exclude_none=True)]}
+print(yaml.dump(output))
