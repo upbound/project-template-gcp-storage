@@ -1,14 +1,8 @@
 # code: language=yaml
 # yaml-language-server: $schema=../../.up/json/models/test.schema.json
 
-# The provider authenticates to GCP through Upbound identity federation, so the
-# test needs no stored GCP credentials. This only works on an Upbound Cloud
-# control plane, whose identity the GCP workload identity pool must trust.
-# Override the defaults with these environment variables to use your own GCP
-# project, workload identity pool provider, and service account.
-{{- $gcp_project_id := env "UP_GCP_PROJECT_ID" | default "crossplane-playground" }}
-{{- $gcp_wif_provider := env "UP_GCP_WIF_PROVIDER" | default "projects/283222062215/locations/global/workloadIdentityPools/solutions-upbound-oidc-pool/providers/solutions-u5d-oidc-pool" }}
-{{- $gcp_service_account := env "UP_GCP_SERVICE_ACCOUNT" | default "solutions-u5d-service-account@crossplane-playground.iam.gserviceaccount.com" }}
+{{- $gcp_project_id := env "UP_GCP_PROJECT_ID" }}
+{{- $gcp_creds := (env "UP_GCP_CREDS") | b64enc }}
 
 items:
 - apiVersion: meta.dev.upbound.io/v1alpha1
@@ -24,20 +18,25 @@ items:
     defaultConditions:
       - Ready
     extraResources:
-      # Namespaced managed resources use the ClusterProviderConfig named
-      # "default" unless they set a providerConfigRef.
       - apiVersion: gcp.m.upbound.io/v1beta1
         kind: ClusterProviderConfig
         metadata:
           name: default
         spec:
           credentials:
-            source: Upbound
-            upbound:
-              federation:
-                providerID: {{ $gcp_wif_provider | quote }}
-                serviceAccount: {{ $gcp_service_account | quote }}
+            secretRef:
+              key: credentials
+              name: gcp-credentials
+              namespace: crossplane-system
+            source: Secret
           projectID: {{ $gcp_project_id | quote }}
+      - apiVersion: v1
+        data:
+          credentials: {{ $gcp_creds | quote }}
+        kind: Secret
+        metadata:
+          name: gcp-credentials
+          namespace: crossplane-system
     manifests:
       - apiVersion: platform.example.com/v1alpha1
         kind: StorageBucket
