@@ -10,22 +10,25 @@ on:
       - labeled
 
 permissions:
-  id-token: write   # Required for OIDC authentication
   contents: read    # Required for checkout
 
+env:
+  UP_ORG: ${{ secrets.UP_ORG }}
+  UP_API_TOKEN: ${{ secrets.UP_API_TOKEN }}
+  UP_TOKEN_ID: ${{ secrets.UP_TOKEN_ID }}
+  UP_GROUP: ${{ secrets.UP_GROUP || 'default' }}
 
 jobs:
   e2e:
     if: contains(github.event.pull_request.labels.*.name, 'run-e2e-tests')
     runs-on: ubuntu-latest
     strategy:
+      # Report every language combination instead of cancelling the rest on
+      # the first failure.
+      fail-fast: false
       matrix:
         language: [go, go-templating, kcl, python]
         test-language: [go-templating, kcl, python]
-    env:
-      UP_ORG: ${{ secrets.UP_ORG }}
-      UP_API_TOKEN: ${{ secrets.UP_API_TOKEN }}
-      UP_TOKEN_ID: ${{ secrets.UP_TOKEN_ID }}
 
     steps:
       - name: Checkout
@@ -34,16 +37,6 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
-
-      - name: Configure GCP credentials
-        id: gcp-creds
-        uses: google-github-actions/auth@v2
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-          create_credentials_file: true
-          export_environment_variables: true
 
       - name: Setup Go
         id: setup-go
@@ -78,13 +71,19 @@ jobs:
           cd generated-project
           up test run tests/* --local --skip-control-plane-cleanup
 
+      # The e2e tests authenticate the GCP provider through Upbound identity
+      # federation (credentials source: Upbound), which only works on an
+      # Upbound Cloud control plane, so they run in a cloud space rather than
+      # a local kind cluster.
+      - name: Switch up context
+        if: env.UP_API_TOKEN != '' && env.UP_ORG != ''
+        run: up ctx ${{ env.UP_ORG }}/upbound-gcp-us-central-1/${{ env.UP_GROUP }}
+
       - name: Run e2e tests
-        env:
-          UP_GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        if: env.UP_API_TOKEN != '' && env.UP_ORG != ''
         run: |
           cd generated-project
-          export UP_GCP_CREDS="$(cat ${{ env.GOOGLE_APPLICATION_CREDENTIALS }})"
-          up test run tests/* --e2e --local --skip-control-plane-cleanup
+          up test run tests/* --e2e
 
       - name: Install kind CLI
         if: failure()
