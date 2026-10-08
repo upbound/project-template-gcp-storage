@@ -5,9 +5,9 @@ from crossplane.function import logging, resource, response
 from crossplane.function.proto.v1 import run_function_pb2 as fnv1
 from crossplane.function.proto.v1 import run_function_pb2_grpc as grpcv1
 
-from models.com.example.platform.xstoragebucket import v1alpha1
-from models.io.upbound.gcp.storage.bucket import v1beta1 as bucketv1beta1
-from models.io.upbound.gcp.storage.bucketacl import v1beta1 as aclv1beta1
+from models.com.example.platform.storagebucket import v1alpha1
+from models.io.upbound.m.gcp.storage.bucket import v1beta1 as bucketv1beta1
+from models.io.upbound.m.gcp.storage.bucketacl import v1beta1 as aclv1beta1
 
 
 class FunctionRunner(grpcv1.FunctionRunnerService):
@@ -26,18 +26,16 @@ class FunctionRunner(grpcv1.FunctionRunnerService):
 
         rsp = response.to(req)
 
-        observed_xr = v1alpha1.XStorageBucket(**resource.struct_to_dict(req.observed.composite.resource))
+        observed_xr = v1alpha1.StorageBucket(**resource.struct_to_dict(req.observed.composite.resource))
         params = observed_xr.spec.parameters
 
         desired_bucket = bucketv1beta1.Bucket(
             spec=bucketv1beta1.Spec(
                 forProvider=bucketv1beta1.ForProvider(
                     location=params.location,
-                    versioning=[
-                        bucketv1beta1.VersioningItem(
-                            enabled=params.versioning,
-                        )
-                    ],
+                    versioning=bucketv1beta1.Versioning(
+                        enabled=params.versioning,
+                    ),
                 ),
             ),
         )

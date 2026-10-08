@@ -2,7 +2,7 @@ import base64
 import file
 
 import models.com.example.platform.v1alpha1 as platformv1alpha1
-import models.io.upbound.gcp.v1beta1 as gcpv1beta1
+import models.io.upbound.gcpm.v1beta1 as gcpmv1beta1
 import models.io.upbound.dev.meta.v1alpha1 as metav1alpha1
 import models.io.k8s.api.core.v1 as corev1
 
@@ -12,15 +12,16 @@ gcp_creds = file.read_env("UP_GCP_CREDS")
 
 _items = [
     metav1alpha1.E2ETest{
-        metadata.name = "e2etest-xstoragebucket"
+        metadata.name = "e2etest-storagebucket"
         spec = {
             crossplane.autoUpgrade.channel = "Rapid"
             defaultConditions = [
                 "Ready"
             ]
             manifests = [
-                platformv1alpha1.XStorageBucket{
+                platformv1alpha1.StorageBucket{
                     metadata.name = "uptest-bucket-xr-kcl"
+                    metadata.namespace = "default"
                     spec.parameters = {
                         acl = "private"
                         location = "EU"
@@ -29,7 +30,7 @@ _items = [
                 }
             ]
             extraResources = [
-                gcpv1beta1.ProviderConfig{
+                gcpmv1beta1.ClusterProviderConfig{
                     metadata.name = "default"
                     spec.projectID = gcp_project_id
                     spec.credentials = {

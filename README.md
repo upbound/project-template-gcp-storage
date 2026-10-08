@@ -1,9 +1,10 @@
 # project-template-gcp-storage
 
 This template can be used to initialize a new project using `provider-gcp`. By
-default it comes with an `XStorageBucket` XRD and a matching composition
-function which creates a GCP Storage bucket. It also creates the corresponding
-unit and e2e tests.
+default it comes with a namespaced `StorageBucket` XRD (Crossplane v2,
+`apiextensions.crossplane.io/v2`) and a matching composition function which
+creates a GCP Storage bucket using the provider's namespaced (`.m.upbound.io`)
+resources. It also creates the corresponding unit and e2e tests.
 
 ## Usage
 

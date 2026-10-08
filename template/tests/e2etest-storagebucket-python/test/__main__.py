@@ -5,8 +5,8 @@ import yaml
 from pydantic import BaseModel
 from models.io.upbound.dev.meta.e2etest import v1alpha1 as e2etest
 from models.io.k8s.apimachinery.pkg.apis.meta import v1 as k8s
-from models.com.example.platform.xstoragebucket import v1alpha1 as xstoragebucket
-from models.io.upbound.gcp.providerconfig import v1beta1 as providerconfig
+from models.com.example.platform.storagebucket import v1alpha1 as storagebucket
+from models.io.upbound.m.gcp.clusterproviderconfig import v1beta1 as clusterproviderconfig
 
 
 class Secret(BaseModel):
@@ -16,12 +16,13 @@ class Secret(BaseModel):
     type: str = "Opaque"
     data: dict[str, str] = {}
 
-bucket_manifest = xstoragebucket.XStorageBucket(
+bucket_manifest = storagebucket.StorageBucket(
     metadata=k8s.ObjectMeta(
         name="uptest-bucket-xr-python",
+        namespace="default",
     ),
-    spec=xstoragebucket.Spec(
-        parameters=xstoragebucket.Parameters(
+    spec=storagebucket.Spec(
+        parameters=storagebucket.Parameters(
             acl="private",
             location="EU",
             versioning=True,
@@ -39,15 +40,15 @@ provider_creds = Secret(
     }
 )
 
-provider_config = providerconfig.ProviderConfig(
+provider_config = clusterproviderconfig.ClusterProviderConfig(
     metadata=k8s.ObjectMeta(
         name="default",
     ),
-    spec=providerconfig.Spec(
+    spec=clusterproviderconfig.Spec(
         projectID=os.environ.get("UP_GCP_PROJECT_ID", ""),
-        credentials=providerconfig.Credentials(
+        credentials=clusterproviderconfig.Credentials(
             source="Secret",
-            secretRef=providerconfig.SecretRef(
+            secretRef=clusterproviderconfig.SecretRef(
                 name="gcp-credentials",
                 namespace="crossplane-system",
                 key="credentials",
@@ -58,7 +59,7 @@ provider_config = providerconfig.ProviderConfig(
 
 test = e2etest.E2ETest(
     metadata=k8s.ObjectMeta(
-        name="e2etest-xstoragebucket",
+        name="e2etest-storagebucket",
     ),
     spec=e2etest.Spec(
         crossplane=e2etest.Crossplane(

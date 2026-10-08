@@ -1,8 +1,9 @@
 import models.com.example.platform.v1alpha1 as platformv1alpha1
-import models.io.upbound.gcp.storage.v1beta1 as v1beta1
+import models.io.upbound.gcpm.storage.v1beta1 as v1beta1
 
-_expectedXR =  platformv1alpha1.XStorageBucket{
+_expectedXR =  platformv1alpha1.StorageBucket{
     metadata.name: "example"
+    metadata.namespace: "default"
     spec: {
         parameters: {
             acl: "publicRead"
@@ -18,42 +19,38 @@ _expectedBucketBefore = v1beta1.Bucket{
     }
     spec.forProvider: {
         location: "US"
-        versioning: [
-            {
-                enabled: True
-            }
-        ]
+        versioning: {
+            enabled: True
+        }
     }
 }
 
 _observedBucket = v1beta1.Bucket{
     metadata.name: "example-bucket"
+    metadata.namespace: "default"
     metadata.annotations: {
         "crossplane.io/composition-resource-name": "bucket"
         "crossplane.io/external-name": "example-bucket"
     }
     spec.forProvider: {
         location: "US"
-        versioning: [
-            {
-                enabled: True
-            }
-        ]
+        versioning: {
+            enabled: True
+        }
     }
 }
 
 _expectedBucketAfter = v1beta1.Bucket{
     metadata.name: "example-bucket"
+    metadata.namespace: "default"
     metadata.annotations: {
         "crossplane.io/composition-resource-name": "bucket"
     }
     spec.forProvider: {
         location: "US"
-        versioning: [
-            {
-                enabled: True
-            }
-        ]
+        versioning: {
+            enabled: True
+        }
     }
 }
 
