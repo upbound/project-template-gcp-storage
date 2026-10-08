@@ -6,7 +6,7 @@ import (
 
 	"dev.upbound.io/models/com/example/platform/v1alpha1"
 	v1 "dev.upbound.io/models/io/k8s/meta/v1"
-	"dev.upbound.io/models/io/upbound/gcp/storage/v1beta1"
+	"dev.upbound.io/models/io/upbound/m/gcp/storage/v1beta1"
 	"github.com/crossplane/crossplane-runtime/pkg/logging"
 	fnv1 "github.com/crossplane/function-sdk-go/proto/v1"
 	"github.com/crossplane/function-sdk-go/resource"
@@ -40,9 +40,9 @@ func TestRunFunction(t *testing.T) {
 				req: &fnv1.RunFunctionRequest{
 					Meta: &fnv1.RequestMeta{Tag: "hello"},
 					Observed: &fnv1.State{
-						Composite: toResource(&v1alpha1.XStorageBucket{
-							Spec: &v1alpha1.XStorageBucketSpec{
-								Parameters: &v1alpha1.XStorageBucketSpecParameters{
+						Composite: toResource(&v1alpha1.StorageBucket{
+							Spec: &v1alpha1.StorageBucketSpec{
+								Parameters: &v1alpha1.StorageBucketSpecParameters{
 									Location:   ptr.To("us-east-1"),
 									ACL:        ptr.To("private"),
 									Versioning: ptr.To(false),
@@ -58,19 +58,19 @@ func TestRunFunction(t *testing.T) {
 					Results: []*fnv1.Result{{
 						Severity: fnv1.Severity_SEVERITY_NORMAL,
 						Message:  "waiting for bucket to be created",
-						Target:   fnv1.Target_TARGET_COMPOSITE_AND_CLAIM.Enum(),
+						Target:   fnv1.Target_TARGET_COMPOSITE.Enum(),
 					}},
 					Desired: &fnv1.State{
 						Resources: map[string]*fnv1.Resource{
 							"bucket": toResource(&v1beta1.Bucket{
-								APIVersion: ptr.To(v1beta1.BucketAPIVersionstorageGcpUpboundIoV1Beta1),
+								APIVersion: ptr.To(v1beta1.BucketAPIVersionstorageGcpMUpboundIoV1Beta1),
 								Kind:       ptr.To(v1beta1.BucketKindBucket),
 								Spec: &v1beta1.BucketSpec{
 									ForProvider: &v1beta1.BucketSpecForProvider{
 										Location: ptr.To("us-east-1"),
-										Versioning: &[]v1beta1.BucketSpecForProviderVersioningItem{{
+										Versioning: &v1beta1.BucketSpecForProviderVersioning{
 											Enabled: ptr.To(false),
-										}},
+										},
 									},
 								},
 							}),
@@ -85,9 +85,9 @@ func TestRunFunction(t *testing.T) {
 				req: &fnv1.RunFunctionRequest{
 					Meta: &fnv1.RequestMeta{Tag: "hello"},
 					Observed: &fnv1.State{
-						Composite: toResource(&v1alpha1.XStorageBucket{
-							Spec: &v1alpha1.XStorageBucketSpec{
-								Parameters: &v1alpha1.XStorageBucketSpecParameters{
+						Composite: toResource(&v1alpha1.StorageBucket{
+							Spec: &v1alpha1.StorageBucketSpec{
+								Parameters: &v1alpha1.StorageBucketSpecParameters{
 									Location:   ptr.To("us-east-1"),
 									ACL:        ptr.To("private"),
 									Versioning: ptr.To(false),
@@ -96,7 +96,7 @@ func TestRunFunction(t *testing.T) {
 						}),
 						Resources: map[string]*fnv1.Resource{
 							"bucket": toResource(&v1beta1.Bucket{
-								APIVersion: ptr.To(v1beta1.BucketAPIVersionstorageGcpUpboundIoV1Beta1),
+								APIVersion: ptr.To(v1beta1.BucketAPIVersionstorageGcpMUpboundIoV1Beta1),
 								Kind:       ptr.To(v1beta1.BucketKindBucket),
 								Metadata: &v1.ObjectMeta{
 									Annotations: &map[string]string{
@@ -120,19 +120,19 @@ func TestRunFunction(t *testing.T) {
 					Desired: &fnv1.State{
 						Resources: map[string]*fnv1.Resource{
 							"bucket": toResource(&v1beta1.Bucket{
-								APIVersion: ptr.To(v1beta1.BucketAPIVersionstorageGcpUpboundIoV1Beta1),
+								APIVersion: ptr.To(v1beta1.BucketAPIVersionstorageGcpMUpboundIoV1Beta1),
 								Kind:       ptr.To(v1beta1.BucketKindBucket),
 								Spec: &v1beta1.BucketSpec{
 									ForProvider: &v1beta1.BucketSpecForProvider{
 										Location: ptr.To("us-east-1"),
-										Versioning: &[]v1beta1.BucketSpecForProviderVersioningItem{{
+										Versioning: &v1beta1.BucketSpecForProviderVersioning{
 											Enabled: ptr.To(false),
-										}},
+										},
 									},
 								},
 							}),
 							"acl": toResource(&v1beta1.BucketACL{
-								APIVersion: ptr.To(v1beta1.BucketACLApiVersionstorageGcpUpboundIoV1Beta1),
+								APIVersion: ptr.To(v1beta1.BucketACLApiVersionstorageGcpMUpboundIoV1Beta1),
 								Kind:       ptr.To(v1beta1.BucketACLKindBucketACL),
 								Spec: &v1beta1.BucketACLSpec{
 									ForProvider: &v1beta1.BucketACLSpecForProvider{
@@ -152,9 +152,9 @@ func TestRunFunction(t *testing.T) {
 				req: &fnv1.RunFunctionRequest{
 					Meta: &fnv1.RequestMeta{Tag: "hello"},
 					Observed: &fnv1.State{
-						Composite: toResource(&v1alpha1.XStorageBucket{
-							Spec: &v1alpha1.XStorageBucketSpec{
-								Parameters: &v1alpha1.XStorageBucketSpecParameters{
+						Composite: toResource(&v1alpha1.StorageBucket{
+							Spec: &v1alpha1.StorageBucketSpec{
+								Parameters: &v1alpha1.StorageBucketSpecParameters{
 									Location:   ptr.To("us-east-1"),
 									ACL:        ptr.To("private"),
 									Versioning: ptr.To(true),
@@ -163,7 +163,7 @@ func TestRunFunction(t *testing.T) {
 						}),
 						Resources: map[string]*fnv1.Resource{
 							"bucket": toResource(&v1beta1.Bucket{
-								APIVersion: ptr.To(v1beta1.BucketAPIVersionstorageGcpUpboundIoV1Beta1),
+								APIVersion: ptr.To(v1beta1.BucketAPIVersionstorageGcpMUpboundIoV1Beta1),
 								Kind:       ptr.To(v1beta1.BucketKindBucket),
 								Metadata: &v1.ObjectMeta{
 									Annotations: &map[string]string{
@@ -173,9 +173,9 @@ func TestRunFunction(t *testing.T) {
 								Spec: &v1beta1.BucketSpec{
 									ForProvider: &v1beta1.BucketSpecForProvider{
 										Location: ptr.To("us-east-1"),
-										Versioning: &[]v1beta1.BucketSpecForProviderVersioningItem{{
+										Versioning: &v1beta1.BucketSpecForProviderVersioning{
 											Enabled: ptr.To(true),
-										}},
+										},
 									},
 								},
 							}),
@@ -190,19 +190,19 @@ func TestRunFunction(t *testing.T) {
 					Desired: &fnv1.State{
 						Resources: map[string]*fnv1.Resource{
 							"bucket": toResource(&v1beta1.Bucket{
-								APIVersion: ptr.To(v1beta1.BucketAPIVersionstorageGcpUpboundIoV1Beta1),
+								APIVersion: ptr.To(v1beta1.BucketAPIVersionstorageGcpMUpboundIoV1Beta1),
 								Kind:       ptr.To(v1beta1.BucketKindBucket),
 								Spec: &v1beta1.BucketSpec{
 									ForProvider: &v1beta1.BucketSpecForProvider{
 										Location: ptr.To("us-east-1"),
-										Versioning: &[]v1beta1.BucketSpecForProviderVersioningItem{{
+										Versioning: &v1beta1.BucketSpecForProviderVersioning{
 											Enabled: ptr.To(true),
-										}},
+										},
 									},
 								},
 							}),
 							"acl": toResource(&v1beta1.BucketACL{
-								APIVersion: ptr.To(v1beta1.BucketACLApiVersionstorageGcpUpboundIoV1Beta1),
+								APIVersion: ptr.To(v1beta1.BucketACLApiVersionstorageGcpMUpboundIoV1Beta1),
 								Kind:       ptr.To(v1beta1.BucketACLKindBucketACL),
 								Spec: &v1beta1.BucketACLSpec{
 									ForProvider: &v1beta1.BucketACLSpecForProvider{

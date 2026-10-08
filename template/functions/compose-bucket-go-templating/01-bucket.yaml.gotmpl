@@ -2,7 +2,7 @@
 # yaml-language-server: $schema=../../.up/json/models/index.schema.json
 
 ---
-apiVersion: storage.gcp.upbound.io/v1beta1
+apiVersion: storage.gcp.m.upbound.io/v1beta1
 kind: Bucket
 metadata:
   annotations:
@@ -11,7 +11,7 @@ spec:
   forProvider:
     location: "{{ $params.location }}"
     versioning:
-      - enabled: {{ $params.versioning }}
+      enabled: {{ $params.versioning }}
 
 # The desired ACL resource needs to refer to the bucket by its external name,
 # which is stored in its external name annotation. Fetch the external name into

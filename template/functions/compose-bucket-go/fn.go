@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 
 	"dev.upbound.io/models/com/example/platform/v1alpha1"
-	"dev.upbound.io/models/io/upbound/gcp/storage/v1beta1"
+	"dev.upbound.io/models/io/upbound/m/gcp/storage/v1beta1"
 	"github.com/crossplane/function-sdk-go/errors"
 	"github.com/crossplane/function-sdk-go/logging"
 	fnv1 "github.com/crossplane/function-sdk-go/proto/v1"
@@ -40,7 +40,7 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 		return rsp, nil
 	}
 
-	var xr v1alpha1.XStorageBucket
+	var xr v1alpha1.StorageBucket
 	if err := convertViaJSON(&xr, observedComposite.Resource); err != nil {
 		response.Fatal(rsp, errors.Wrap(err, "cannot convert xr"))
 		return rsp, nil
@@ -78,14 +78,14 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 	}()
 
 	bucket := &v1beta1.Bucket{
-		APIVersion: ptr.To(v1beta1.BucketAPIVersionstorageGcpUpboundIoV1Beta1),
+		APIVersion: ptr.To(v1beta1.BucketAPIVersionstorageGcpMUpboundIoV1Beta1),
 		Kind:       ptr.To(v1beta1.BucketKindBucket),
 		Spec: &v1beta1.BucketSpec{
 			ForProvider: &v1beta1.BucketSpecForProvider{
 				Location: params.Location,
-				Versioning: &[]v1beta1.BucketSpecForProviderVersioningItem{{
+				Versioning: &v1beta1.BucketSpecForProviderVersioning{
 					Enabled: params.Versioning,
-				}},
+				},
 			},
 		},
 	}
@@ -95,7 +95,7 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 	// hasn't been created yet. This function will be called again after it is.
 	observedBucket, ok := observedComposed["bucket"]
 	if !ok {
-		response.Normal(rsp, "waiting for bucket to be created").TargetCompositeAndClaim()
+		response.Normal(rsp, "waiting for bucket to be created").TargetComposite()
 		return rsp, nil
 	}
 
@@ -104,12 +104,12 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 	// external-name annotation isn't set yet.
 	bucketExternalName := observedBucket.Resource.GetAnnotations()["crossplane.io/external-name"]
 	if bucketExternalName == "" {
-		response.Normal(rsp, "waiting for bucket to be created").TargetCompositeAndClaim()
+		response.Normal(rsp, "waiting for bucket to be created").TargetComposite()
 		return rsp, nil
 	}
 
 	acl := &v1beta1.BucketACL{
-		APIVersion: ptr.To(v1beta1.BucketACLApiVersionstorageGcpUpboundIoV1Beta1),
+		APIVersion: ptr.To(v1beta1.BucketACLApiVersionstorageGcpMUpboundIoV1Beta1),
 		Kind:       ptr.To(v1beta1.BucketACLKindBucketACL),
 		Spec: &v1beta1.BucketACLSpec{
 			ForProvider: &v1beta1.BucketACLSpecForProvider{

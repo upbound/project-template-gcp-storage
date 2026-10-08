@@ -1,7 +1,11 @@
-import models.io.upbound.gcp.storage.v1beta1
-import models.com.example.platform.v1alpha1.xstoragebucket as xstoragebucketv1alpha1
+import models.io.upbound.gcpm.storage.v1beta1
+import models.com.example.platform.v1alpha1.storagebucket as storagebucketv1alpha1
 
-oxr = xstoragebucketv1alpha1.XStorageBucket{**option("params").oxr}
+oxr = option("params").oxr
+# Validate only the parameters against the generated schema. Crossplane adds
+# fields under spec.crossplane (such as namespaced resourceRefs) that the
+# generated StorageBucket schema doesn't model, so don't type the whole XR.
+params = storagebucketv1alpha1.PlatformExampleComV1alpha1StorageBucketSpecParameters{**oxr.spec.parameters}
 
 _metadata = lambda name: str -> any {
   {
@@ -16,12 +20,10 @@ _items: [any] = [
         metadata: _metadata("bucket")
         spec = {
             forProvider = {
-                location = oxr.spec.parameters.location
-                versioning = [
-                    {
-                        enabled = oxr.spec.parameters.versioning
-                    }
-                ]
+                location = params.location
+                versioning = {
+                    enabled = params.versioning
+                }
             }
         }
     }
@@ -37,7 +39,7 @@ if bucketExternalName:
                 spec = {
                 forProvider = {
                     bucket = bucketExternalName
-                    predefinedAcl = oxr.spec.parameters.acl
+                    predefinedAcl = params.acl
                 }
             }
         }
